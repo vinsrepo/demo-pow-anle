@@ -4,22 +4,24 @@ import logo from './logo.svg';
 import './App.css';
 import Web3 from 'web3';
 import VinModal from './VinModal';
+var Tx = require('ethereumjs-tx');
 
 var CourseContract;
+var web3;
 
 class App extends Component {
   
   state = {
     balanceOf: 0,
-    account: '0xad8ec72843489a5e65a2929f5562b7aede2adf17',
-    addressContract: '0x3bf2a652ab4f40196016f9eeec1b4aa245173de2',
+    myAddress: '0x296d2594ec52c46af5342359d08d69b7543f1947',
+    addressContract: ' 0x3f9676b5824b6dc90e2f3908619b74ee4daf319e',
     symbol: 'ether',
     name: '',
     age: 0,
   }
 
   componentDidMount() {
-      const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 
       const ABI = [
         {
@@ -122,6 +124,25 @@ class App extends Component {
           "type": "fallback"
         },
         {
+          "inputs": [
+            {
+              "name": "_address",
+              "type": "address"
+            },
+            {
+              "name": "_fName",
+              "type": "string"
+            },
+            {
+              "name": "_age",
+              "type": "uint256"
+            }
+          ],
+          "payable": false,
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
           "constant": true,
           "inputs": [
             {
@@ -164,20 +185,20 @@ class App extends Component {
           "type": "function"
         }
       ]
-      /** Connect to smart contract **/
+      /********** Connect to smart contract *************/
       CourseContract = new web3.eth.Contract(ABI, this.state.addressContract, {
-        from: this.state.account
+        from: this.state.myAddress
       });
       /*
-      *  Return balance of wallet, userName, age
-      * 
-      * 
+      * * Return balance of wallet, userName, age
+      * *
+      * *
       */
       try {
-        CourseContract.methods.balanceOf(this.state.account)
+        CourseContract.methods.balanceOf(this.state.myAddress)
           .call()
           .then(res =>  this.setState({ balanceOf: web3.utils.fromWei(res, this.state.symbol) }));;
-        CourseContract.methods.getInstructor(this.state.account)
+        CourseContract.methods.getInstructor(this.state.myAddress)
           .call()
           .then(res => this.setState({ name: res.name, age: res.age }));
           
@@ -195,14 +216,49 @@ class App extends Component {
         let name = that.refs.nameInput.value || '';
         let age = that.refs.ageInput.value || 0;
        
-        CourseContract.methods.setInstructor(that.props.account, age, name).send({ from : that.props.account}); 
+        CourseContract.methods.setInstructor(that.props.myAddress, age, name).send({ from : that.props.myAddress}); 
       } catch (error) {
         console.log(error);
       }
     }
   
-    transfer() {
-      
+    transfer = async () => {
+      var destAddress = '0x973d2643dd90853aa5f158efd48eced838526d25';
+      var transferAmount = 1;       
+      // Determine the nonce
+      var count = await web3.eth.getTransactionCount(this.state.myAddress);
+      var balance = await CourseContract.methods.balanceOf(this.state.myAddress).call();
+      console.log(`Balance before send: ${web3.utils.fromWei(balance, 'ether')} ether\n------------------------`);
+      // I chose gas price and gas limit based on what ethereum wallet was recommending for a similar transaction. You may need to change the gas price!
+      // Use Gwei for the unit of gas price
+      var gasPriceGwei = 4;
+      var gasLimit = 3000000;
+      // Chain ID of Rinkeby testnet is 4
+      var chainId = 4;
+      var rawTransaction = {
+          "from": this.state.myAddress,
+          "nonce": "0x" + count.toString(16),
+          "gasPrice": web3.utils.toHex(gasPriceGwei * 1e9),
+          "gasLimit": web3.utils.toHex(gasLimit),
+          "to": this.state.addressContract,
+          "value": "0x0",
+          "data": CourseContract.methods.transfer(destAddress, transferAmount).encodeABI(),
+          "chainId": chainId
+      };
+      console.log(`Raw of Transaction: \n${JSON.stringify(rawTransaction, null, '\t')}\n------------------------`);
+      // The private key for myAddress in .env
+      var privKey = new Buffer('e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109', 'hex')
+      var tx = new Tx(rawTransaction);
+      tx.sign(privKey);
+      var serializedTx = tx.serialize();
+      // Comment out these four lines if you don't really want to send the TX right now
+      console.log(`Attempting to send signed tx:  ${serializedTx.toString('hex')}\n------------------------`);
+      var receipt = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex'));
+      // The receipt info of transaction, Uncomment for debug
+      console.log(`Receipt info: \n${JSON.stringify(receipt, null, '\t')}\n------------------------`);
+      // The balance may not be updated yet, but let's check
+      balance = await CourseContract.methods.balanceOf(this.state.myAddress).call();
+      console.log(`Balance after send: ${web3.utils.fromWei(balance, 'ether')} ether`);
     }
 
   render() {
@@ -215,12 +271,13 @@ class App extends Component {
         <div className="container" style={{ display: 'grid', gridTemplateColumns: '50% 50%'}}>
           <div style={{ border: '1px solid #bee5eb', marginTop: 5 }}>
             <p className="App-intro">
-              Account: {this.state.account}
+            myAddress: {this.state.myAddress}
             </p>
             <p>Name: <span style={{textTransform: 'uppercase'}}>{this.state.name}</span></p>
             <p>Age: {this.state.age}</p>
             <p className="App-intro"> Balance: {this.state.balanceOf} {this.state.symbol}
             </p>
+            <button className="alert alert-danger" title="Demo with my account" onClick={() => this.transfer()}>Chuyển tiền</button>
             <button className="alert alert-primary" onClick={() => this.VinModal.open()}>Sửa thông tin cá nhân</button>
           </div>
         </div>
@@ -231,7 +288,7 @@ class App extends Component {
               <p>Age: <input type="number" ref="ageInput"/></p>
             </React.Fragment>
           )
-        }} hanldeChange={this.setInstructor} account={this.state.account}/>
+        }} hanldeChange={this.setInstructor} myAddress={this.state.myAddress}/>
       </div>
     );
   }
