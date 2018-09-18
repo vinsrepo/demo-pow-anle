@@ -8,204 +8,214 @@ var Tx = require('ethereumjs-tx');
 
 var CourseContract;
 var web3;
-
+var myAddress = '0x0a0407fd0d2dfd09b6a0e4176fd35ecb628a3eb0';
+var addressContract = '0x3b0fa4506958a48ed7e0f959dee1f60928568267';
+var destAddress = '0x64f7d6def87dfd2b79bc24cd1b6b0821fe6b5eee';
 class App extends Component {
   
   state = {
     balanceOf: 0,
-    myAddress: '0x296d2594ec52c46af5342359d08d69b7543f1947',
-    addressContract: ' 0x3f9676b5824b6dc90e2f3908619b74ee4daf319e',
+    myAddress: '0xb2dfed8235fb2ab0822475591dc41109b6aaaf88',
+    addressContract: ' 0x18615e2e2c91be044a9bbd845e2c00b20c2e7953',
     symbol: 'ether',
     name: '',
     age: 0,
   }
 
   componentDidMount() {
+    if (typeof web3 !== 'undefined') {
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      // Set the provider you want from Web3.providers
       web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-
-      const ABI = [
-        {
-          "constant": false,
-          "inputs": [
-            {
-              "name": "_address",
-              "type": "address"
-            },
-            {
-              "name": "_age",
-              "type": "uint256"
-            },
-            {
-              "name": "_fName",
-              "type": "string"
-            }
-          ],
-          "name": "setInstructor",
-          "outputs": [],
-          "payable": false,
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "constant": false,
-          "inputs": [
-            {
-              "name": "to",
-              "type": "address"
-            },
-            {
-              "name": "tokens",
-              "type": "uint256"
-            }
-          ],
-          "name": "transfer",
-          "outputs": [
-            {
-              "name": "success",
-              "type": "bool"
-            }
-          ],
-          "payable": false,
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "name": "_from",
-              "type": "address"
-            },
-            {
-              "indexed": true,
-              "name": "_to",
-              "type": "address"
-            },
-            {
-              "indexed": false,
-              "name": "_value",
-              "type": "uint256"
-            }
-          ],
-          "name": "Transfer",
-          "type": "event"
-        },
-        {
-          "constant": false,
-          "inputs": [
-            {
-              "name": "from",
-              "type": "address"
-            },
-            {
-              "name": "to",
-              "type": "address"
-            },
-            {
-              "name": "tokens",
-              "type": "uint256"
-            }
-          ],
-          "name": "transferFrom",
-          "outputs": [
-            {
-              "name": "success",
-              "type": "bool"
-            }
-          ],
-          "payable": false,
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "payable": true,
-          "stateMutability": "payable",
-          "type": "fallback"
-        },
-        {
-          "inputs": [
-            {
-              "name": "_address",
-              "type": "address"
-            },
-            {
-              "name": "_fName",
-              "type": "string"
-            },
-            {
-              "name": "_age",
-              "type": "uint256"
-            }
-          ],
-          "payable": false,
-          "stateMutability": "nonpayable",
-          "type": "constructor"
-        },
-        {
-          "constant": true,
-          "inputs": [
-            {
-              "name": "tokenOwner",
-              "type": "address"
-            }
-          ],
-          "name": "balanceOf",
-          "outputs": [
-            {
-              "name": "balance",
-              "type": "uint256"
-            }
-          ],
-          "payable": false,
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "constant": true,
-          "inputs": [
-            {
-              "name": "ins",
-              "type": "address"
-            }
-          ],
-          "name": "getInstructor",
-          "outputs": [
-            {
-              "name": "age",
-              "type": "uint256"
-            },
-            {
-              "name": "name",
-              "type": "string"
-            }
-          ],
-          "payable": false,
-          "stateMutability": "view",
-          "type": "function"
-        }
-      ]
-      /********** Connect to smart contract *************/
-      CourseContract = new web3.eth.Contract(ABI, this.state.addressContract, {
-        from: this.state.myAddress
-      });
-      /*
-      * * Return balance of wallet, userName, age
-      * *
-      * *
-      */
-      try {
-        CourseContract.methods.balanceOf(this.state.myAddress)
-          .call()
-          .then(res =>  this.setState({ balanceOf: web3.utils.fromWei(res, this.state.symbol) }));;
-        CourseContract.methods.getInstructor(this.state.myAddress)
-          .call()
-          .then(res => this.setState({ name: res.name, age: res.age }));
-          
-      } catch (error) {
-        console.log(error); 
-      }
     }
+    
+    const ABI = [
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "name": "_address",
+            "type": "address"
+          },
+          {
+            "name": "_age",
+            "type": "uint256"
+          },
+          {
+            "name": "_fName",
+            "type": "string"
+          }
+        ],
+        "name": "setInstructor",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "name": "tokens",
+            "type": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "outputs": [
+          {
+            "name": "success",
+            "type": "bool"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "name": "_from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "name": "_to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "name": "_value",
+            "type": "uint256"
+          }
+        ],
+        "name": "Transfer",
+        "type": "event"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "name": "tokens",
+            "type": "uint256"
+          }
+        ],
+        "name": "transferFrom",
+        "outputs": [
+          {
+            "name": "success",
+            "type": "bool"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "fallback"
+      },
+      {
+        "inputs": [
+          {
+            "name": "_address",
+            "type": "address"
+          },
+          {
+            "name": "_fName",
+            "type": "string"
+          },
+          {
+            "name": "_age",
+            "type": "uint256"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          {
+            "name": "tokenOwner",
+            "type": "address"
+          }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+          {
+            "name": "balance",
+            "type": "uint256"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          {
+            "name": "ins",
+            "type": "address"
+          }
+        ],
+        "name": "getInstructor",
+        "outputs": [
+          {
+            "name": "age",
+            "type": "uint256"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ]
+    /********** Connect to smart contract *************/
+    CourseContract = new web3.eth.Contract(ABI, addressContract, {
+      from: myAddress
+    })
+    
+    /*
+    * * Return balance of wallet, userName, age
+    * *
+    * *
+    */
+    try {
+      CourseContract.methods.balanceOf(myAddress)
+        .call()
+        .then(res =>  this.setState({ balanceOf: web3.utils.fromWei(res, this.state.symbol) }));;
+      CourseContract.methods.getInstructor(myAddress)
+        .call()
+        .then(res => this.setState({ name: res.name, age: res.age }));
+
+        console.log(web3.eth.getBalance(myAddress))
+        
+    } catch (error) {
+      console.log(error); 
+    }
+  }
 
     setInstructor(that) {
       /**** 
@@ -223,24 +233,24 @@ class App extends Component {
     }
   
     transfer = async () => {
-      var destAddress = '0x973d2643dd90853aa5f158efd48eced838526d25';
       var transferAmount = 1;       
       // Determine the nonce
-      var count = await web3.eth.getTransactionCount(this.state.myAddress);
-      var balance = await CourseContract.methods.balanceOf(this.state.myAddress).call();
+      var count = await web3.eth.getTransactionCount(myAddress);
+      var balance = await CourseContract.methods.balanceOf(myAddress).call();
+      
       console.log(`Balance before send: ${web3.utils.fromWei(balance, 'ether')} ether\n------------------------`);
       // I chose gas price and gas limit based on what ethereum wallet was recommending for a similar transaction. You may need to change the gas price!
       // Use Gwei for the unit of gas price
       var gasPriceGwei = 4;
       var gasLimit = 3000000;
       // Chain ID of Rinkeby testnet is 4
-      var chainId = 4;
+      var chainId = 3;
       var rawTransaction = {
-          "from": this.state.myAddress,
-          "nonce": "0x" + count.toString(16),
+          "from": myAddress,
+          "nonce": "0x00",
           "gasPrice": web3.utils.toHex(gasPriceGwei * 1e9),
           "gasLimit": web3.utils.toHex(gasLimit),
-          "to": this.state.addressContract,
+          "to": addressContract,
           "value": "0x0",
           "data": CourseContract.methods.transfer(destAddress, transferAmount).encodeABI(),
           "chainId": chainId
